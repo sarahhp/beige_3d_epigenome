@@ -8,6 +8,10 @@ Code and analyzed data files to accompany paper Hazell Pickering et al 2025 "Mul
 Differential Expression (1E)
 - RNA-seq/limma_DE_donor6_endpt.html
 
+Deconvolution using snRNA-seq from Miranda et al.
+- RNA-seq/make_custom_sigmatrix_miranda2025.html
+- RNA-seq/epic_plots.html
+
 
 **Figure 2 ATAC-seq**
 (and chromatin states)
