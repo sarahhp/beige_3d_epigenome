@@ -1,4 +1,6 @@
-Code and analyzed data files to accompany paper Hazell Pickering et al 2025 "Multimodal remodeling of epigenetic and enhancer networks shapes the transcriptional landscape of beige adipocytes"
+Code and analyzed data files to accompany paper Hazell Pickering et al 2025 "Multimodal epigenetic and enhancer network remodeling shape the transcriptional landscape of human beige adipocytes"
+
+in press, Communications Biology 2025
 
 \[https://www.biorxiv.org/content/10.1101/2025.03.28.645896v1]
 
@@ -23,6 +25,11 @@ Deconvolution using snRNA-seq from Miranda et al. Fig S2 2
 
 **Figure 2 ATAC-seq**
 (and chromatin states)
+
+* ATAC-seq/ATAC_pipeline.bash
+
+DAR calling (2A)
+* ATAC-seq/ATAC_DARs_calling.Rmd
 
 Chromatin states (Supp 5)
 
@@ -76,6 +83,3 @@ MED1 signal
 
 * HiChIP/vs\_med1/
 
-ATAC footprinting
-
-* to be added

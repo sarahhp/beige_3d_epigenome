@@ -1,0 +1,430 @@
+---
+title: "MAnorm2 for Normalizing and Comparing ATAC wD15_bD15 Samples Genrich peaks"
+author: "Mohamed Abdelhalim"
+date: '2022-10-11'
+output:
+  html_document: default
+  keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(dev = "png",
+                      dpi = 300,
+                      echo = FALSE,
+                      cache = TRUE)
+```
+
+## Input Data
+
+For employing the machinery implemented in MAnorm2, you need to prepare a table that profiles the ATAC signal in each of a list of genomic intervals for each of a set of ChIP-seq samples.
+
+```{r dataset}
+library(MAnorm2)
+library(readr)
+setwd("~/ATAC/MAnorm2/wD15_bD15/Genrich/")
+bD15_wD15_profile_bins <- read_delim("bD15_wD15_Gen_profile_bins.xls", delim = "\t", escape_double = FALSE,trim_ws = TRUE)
+head(bD15_wD15_profile_bins)
+
+```
+
+#### Normalization
+
+```{r cmpBioReps}
+# Perform within-group normalization.
+norm <- normalize(bD15_wD15_profile_bins, count = 4:5, occupancy = 8:9)
+norm <- normalize(norm, count = 6:7, occupancy = 10:11)
+
+# Construct a bioCond for each group of samples.
+
+conds <- list(bD15 = bioCond(norm[4:5], norm[8:9], name = "bD15"),
+              wD15 = bioCond(norm[6:7], norm[10:11], name = "wD15"))
+
+# Perform between-group normalization.
+# Restrict common peak regions to autosomes only when the two groups
+# being compared are associated with different genders.
+conds <- normBioCond(conds)
+
+# Fit a mean-variance curve.
+# If the following function call raises an error,
+# set init.coef = c(0.1, 10) or try method = "local".
+init.coef = c(0.1, 10)
+conds <- fitMeanVarCurve(conds, method = "local", occupy.only = TRUE)
+
+# Perform differential tests.
+res <- diffTest(conds[[1]], conds[[2]])
+head(res)
+```
+
+In this data frame, Mval could be interpreted as log2 fold change; pval assesses the statistical significance of each test; padj refers to adjusted p-value with the "BH" method. Mval Difference in mean signal intensity between the two conditions. An Mval of 1 indicates a twofold change in normalized read count.
+
+#### MA plots Before and After Normalization
+
+```{r MAplotDefault, fig.show = "hold", fig.height = 4.7, fig.width = 4.7}
+# Before normalization.
+raw <- log(bD15_wD15_profile_bins[4:5] + 0.5, base = 2)
+MAplot(raw[[1]], raw[[2]],norm[[8]],norm[[9]], ylim = c(-2, 2),
+       main = "bD15_wD15 Before normalization")
+abline(h = 0, lwd = 2, lty = 5)
+
+# After normalization.
+MAplot(norm[[4]], norm[[5]], norm[[8]], norm[[9]], ylim = c(-2, 2),
+       main = "bD15_wD15  After normalization")
+abline(h = 0, lwd = 2, lty = 5)
+```
+
+```{r MAplotBioCond2}
+MAplot(conds[[1]], conds[[2]], ylim = c(-5, 5), main = "bD15 vs. wD15")
+abline(h = 0, lwd = 2, lty = 5)
+```
+
+```{r summaryMVC}
+summary(conds$bD15)
+summary(conds$wD15)
+```
+
+#### You can visualize the overall test results by
+
+```{r MAplotBioCond}
+MAplot(res, padj = 0.01 , ylim = c(-5, 5))
+abline(h = 0, lwd = 2, lty = 5, col = "green3")
+```
+
+#calculate fold change
+
+```{r fold change}
+FC <- log2((rowMeans(bD15_wD15_profile_bins[,4:5])+0.1)/(rowMeans(bD15_wD15_profile_bins[,6:7])+0.1))
+results <- cbind(bD15_wD15_profile_bins[,1:3],res,FC)
+head(results)
+```
+
+#Saving the Results
+
+```{r Saving the Results}
+names <- seq(dim(results)[1])
+names <- paste0("peak_",names)
+strand <- rep("*",dim(results)[1])
+formatedresults <- cbind(results[,1:3],names,results[,3]-results[,2],strand,results$pval,results$padj,results$FC)
+
+tab <- formatedresults[order(results$padj),]
+
+write.table(x = tab, 
+            file = "~/ATAC/MAnorm2/wD15_bD15/Genrich/Genrich_MAnorm2_pooledpeaks.bed", 
+            quote = F , 
+            col.names = F , 
+            row.names = F , 
+            sep = "\t" )
+
+head(tab)
+```
+
+#Saving the Results for each condtion
+
+```{r Saving the Results for each condtion}
+library (dplyr)
+names <- seq(dim(results)[1])
+names <- paste0("peak_",names)
+strand <- rep("*",dim(results)[1])
+formatedresults <- cbind(results[,1:3],names,results$Mval,strand,results$pval,results$padj   ,results$FC)
+
+# for wD15
+
+formatedresults_wD15 <-  formatedresults  %>% filter (`results$Mval` > 0& `results$padj` < 0.01 , na.rm = TRUE)
+
+
+write.table(x = formatedresults_wD15, 
+            file = "~/ATAC/MAnorm2/wD15_bD15/Genrich/Genrich_MAnorm2_wD15_peaks.bed", 
+            quote = F , 
+            col.names = F , 
+            row.names = F , 
+           sep = "\t" )
+head(formatedresults_wD15)
+
+hist(formatedresults_wD15$`results$Mval`, breaks = 100, col = "red"  )
+summary(formatedresults_wD15$`results$Mval`)
+
+# for bD15
+
+formatedresults_bD15 <-  formatedresults  %>% filter (`results$Mval` < 0 & `results$padj` < 0.01 , na.rm = TRUE)
+
+
+write.table(x = formatedresults_bD15, 
+            file = "~/ATAC/MAnorm2/wD15_bD15/Genrich/Genrich_MAnorm2_bD15_peaks.bed", 
+            quote = F , 
+            col.names = F , 
+            row.names = F , 
+            sep = "\t" )
+head(formatedresults_bD15)
+
+hist(abs(formatedresults_bD15$`results$Mval`), breaks = 100, col = "red")
+
+
+summary(abs(formatedresults_bD15$`results$Mval`))
+
+
+```
+
+```{r Volcano plots , fig.show = "hold", fig.height = 10, fig.width = 10}
+
+#if (!requireNamespace('BiocManager', quietly = TRUE))
+    #install.packages('BiocManager')
+
+ # BiocManager::install('EnhancedVolcano')
+  
+library(EnhancedVolcano)
+  
+EnhancedVolcano(formatedresults,
+    lab = rownames(formatedresults),  
+    labSize = 0 ,
+    x = 'results$Mval' ,
+    y = 'results$padj' ,
+    title = 'wD15_bD15',
+    pCutoff = 10e-2,
+    FCcutoff = 0.5,
+    colAlpha = 0.9,
+    labCol = 'red' ,
+    pointSize = 3.0)
+
+```
+#Saving the Results for each condtion after filtering with 1q 
+
+```{r Saving the Results for each condtion after filter}
+# for wD15
+
+formatedresults_wD15_filter <-  formatedresults  %>% filter (`results$Mval` > 0.5396 & `results$padj` < 0.01 , na.rm = TRUE)
+
+
+write.table(x = formatedresults_wD15_filter, 
+            file = "~/ATAC/MAnorm2/wD15_bD15/Genrich/Genrich_MAnorm2_wD15_peaks_filter.bed", 
+            quote = F , 
+            col.names = F , 
+            row.names = F , 
+           sep = "\t" )
+
+hist(formatedresults_wD15_filter$`results$Mval`, breaks = 100, col = "red"  )
+
+# for bD15
+
+formatedresults_bD15_filter <-  formatedresults  %>% filter (`results$Mval` < -0.6401 & `results$padj` < 0.01 , na.rm = TRUE)
+
+
+write.table(x = formatedresults_bD15_filter, 
+            file = "~/ATAC/MAnorm2/wD15_bD15/Genrich/Genrich_MAnorm2_bD15_peaks_filter.bed", 
+            quote = F , 
+            col.names = F , 
+            row.names = F , 
+            sep = "\t" )
+
+hist(abs(formatedresults_bD15_filter$`results$Mval`), breaks = 100, col = "red")
+
+```
+
+### Peak Annotation
+```{r Setting up Peak Annotation, error= TRUE , echo = FALSE}
+
+#BiocManager::install("ChIPseeker")
+#BiocManager::install("TxDb.Hsapiens.UCSC.hg38.knownGene")
+#BiocManager::install("EnsDb.Hsapiens.v86")
+#BiocManager::install("AnnotationDbi")
+#BiocManager::install("clusterProfiler")
+#BiocManager::install("org.Hs.eg.db")
+
+# Load libraries
+
+library(ChIPseeker)
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+library(EnsDb.Hsapiens.v86)
+library(clusterProfiler)
+library(AnnotationDbi)
+library(org.Hs.eg.db)
+
+```
+
+## Loading data
+
+```{r Setting up}
+setwd("~/ATAC/MAnorm2/wD15_bD15/Genrich/Annotation/")
+samplefiles <- list.files("./Genrich/Annotation", pattern= ".bed", full.names=T)
+samplefiles <- as.list(samplefiles)
+names(samplefiles) <- c("bD15", "Wd15","back_ground")
+
+# Next, we need to assign annotation databases generated from UCSC to a variable
+
+txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
+
+#Let’s start by retrieving annotations for our peaks :
+
+peakAnnoList <- lapply(samplefiles, annotatePeak, TxDb=txdb, 
+                       tssRegion=c(-2000, 2000), verbose=FALSE)
+
+# take a look at what is stored in peakAnnoList, you will see that the peak annotations have been summarized for you based on genomic features:
+
+peakAnnoList
+
+```
+# Barchart of genomic feature representation
+
+```{r Barchart of genomic feature representation}
+#install.packages("ggupset")
+#install.packages("ggimage")
+library(ggupset)
+library(ggimage)
+plotAnnoBar(peakAnnoList)
+plotAnnoPie(peakAnnoList[["bD15"]],main="bD15")
+plotAnnoPie(peakAnnoList[["Wd15"]],main="Wb15")
+upsetplot(peakAnnoList[["bD15"]],vennpie=TRUE)+ggtitle("bD15")
+upsetplot(peakAnnoList[["Wd15"]],vennpie=TRUE)+ggtitle("Wd15")
+```
+
+#Distribution of TF-binding loci relative to TSS
+
+```{r Distribution of TF-binding loci relative to TSS}
+plotDistToTSS(peakAnnoList, title="Distribution of transcription factor-binding loci \n relative to TSS")
+
+
+```
+# Get the annotation data 
+```{r Get the annotation data}
+wD15_annot <- data.frame(peakAnnoList[["Wd15"]]@anno)
+bD15_annot <- data.frame(peakAnnoList[["bD15"]]@anno)
+back_ground_annot<- data.frame(peakAnnoList[["back_ground"]]@anno)
+# Get the entrez IDs
+entrez_wD15 <- wD15_annot$geneId
+entrez_bD15 <- bD15_annot$geneId
+entrez_back_ground <- back_ground_annot$geneId
+# Return the gene symbol for the set of Entrez IDs
+annotations_edb_wD15 <- AnnotationDbi::select(EnsDb.Hsapiens.v86,
+                                         keys = entrez_wD15,
+                                         columns = c("GENENAME"),
+                                         keytype = "ENTREZID")
+
+annotations_edb_bD15 <- AnnotationDbi::select(EnsDb.Hsapiens.v86,
+                                         keys = entrez_bD15,
+                                         columns = c("GENENAME"),
+                                         keytype = "ENTREZID")
+
+annotations_edb_back_ground <- AnnotationDbi::select(EnsDb.Hsapiens.v86,
+                                         keys = entrez_back_ground,
+                                         columns = c("GENENAME"),
+                                         keytype = "ENTREZID")
+
+
+
+# Change IDs to character type to merge
+annotations_edb_wD15$ENTREZID <- as.character(annotations_edb_wD15$ENTREZID)
+annotations_edb_bD15$ENTREZID <- as.character(annotations_edb_bD15$ENTREZID)
+annotations_edb_back_ground$ENTREZID <-  as.character(annotations_edb_back_ground$ENTREZID)
+
+
+
+# Write to file
+library(dplyr)
+wD15_annot %>% 
+  left_join(annotations_edb_wD15, by=c("geneId"="ENTREZID")) %>% 
+  write.table(file="./Genrich/Annotation/wD15_peak_annotation.txt", sep="\t", quote=F, row.names=F)
+bD15_annot %>% 
+  left_join(annotations_edb_bD15, by=c("geneId"="ENTREZID")) %>% 
+  write.table(file="./Genrich/Annotation/bD15_peak_annotation.txt", sep="\t", quote=F, row.names=F)
+
+write.table(annotations_edb_wD15,file="./Genrich/Annotation/wD15_peak_annotation_gene_list.txt", sep="\t", quote=F, row.names=F)
+write.table(annotations_edb_bD15,file="./Genrich/Annotation/bD15_peak_annotation_gene_list.txt", sep="\t", quote=F, row.names=F)
+write.table(annotations_edb_back_ground,file="./Genrich/Annotation/back_ground_peak_annotation_gene_list.txt", sep="\t", quote=F, row.names=F)
+
+
+
+
+```
+
+# Functional enrichment: R-based tools
+
+```{r Functional enrichment, error= TRUE , echo = FALSE , fig.show = "hold", fig.height = 15, fig.width = 15}
+ego_wD15 <- enrichGO(gene = entrez_wD15, 
+                    keyType = "ENTREZID", 
+                    OrgDb = org.Hs.eg.db,
+                    universe = entrez_back_ground,
+                    ont = "BP", 
+                    pAdjustMethod = "BH", 
+                    qvalueCutoff = 0.05, 
+                    readable = TRUE)
+ego_bD15 <- enrichGO(gene = entrez_bD15, 
+                    keyType = "ENTREZID", 
+                    OrgDb = org.Hs.eg.db,
+                    universe = entrez_back_ground,
+                    ont = "BP", 
+                    pAdjustMethod = "BH", 
+                    qvalueCutoff = 0.05, 
+                    readable = TRUE)
+dotplot(ego_wD15, showCategory=30) + ggtitle("wD15")
+dotplot(ego_bD15, showCategory=30) + ggtitle("bD15")
+```
+
+# Dotplot visualization
+to get Dotplot visualization
+```{r Dotplot visualization, error=, include=FALSE}
+jpeg("./Genrich/Annotation/dotplot-ego_wD15.jpg", width = 1000, height = 1200,res = 100)
+dotplot(ego_wD15, showCategory=30) + ggtitle("wD15")
+dev.off()
+jpeg("./Genrich/Annotation/dotplot-ego_bD15.jpg", width = 1000, height = 1200,res = 100)
+dotplot(ego_bD15, showCategory=30) + ggtitle("bD15")
+dev.off()
+jpeg("./Genrich/Annotation/barplot-ego_wD15.jpg", width = 1000, height = 1200,res = 100)
+mutate(ego_wD15, qscore = -log(p.adjust, base=10)) %>% 
+    barplot(x="qscore", showCategory=30)+ ggtitle("wD15")
+dev.off()
+jpeg("./Genrich/Annotation/barplot-ego_bD15.jpg", width = 1000, height = 1200,res = 100)
+mutate(ego_bD15, qscore = -log(p.adjust, base=10)) %>% 
+    barplot(x="qscore", showCategory=30)+ ggtitle("bD15")
+dev.off()
+```
+# Output results from GO analysis to a table
+
+```{r Output}
+cluster_summary_wD15 <- data.frame(ego_wD15)
+cluster_summary_bD15 <- data.frame(ego_bD15)
+write.csv(cluster_summary_wD15,"./Genrich/Annotation/clusterProfiler_wD15.csv")
+write.csv(cluster_summary_bD15,"./Genrich/Annotation/clusterProfiler_bD15.csv")
+```
+
+# KEGG pathway enrichment
+
+```{r KEGG pathway, echo = FALSE, error = TRUE, fig.show = "hold", fig.height = 15, fig.width = 15}
+ekegg_bD15 <- enrichKEGG(gene = entrez_bD15,
+                 organism = 'hsa',
+                 universe = entrez_back_ground,
+                 pvalueCutoff = 0.05)
+ekegg_wD15 <- enrichKEGG(gene = entrez_wD15,
+                 organism = 'hsa',
+                 universe = entrez_back_ground,
+                 pvalueCutoff = 0.05)
+jpeg("./Genrich/Annotation/dotplot-ekegg_bD15.jpg", width = 600, height = 600,res = 100)
+dotplot(ekegg_bD15,title="bD15", showCategory=30,font.size = 12)
+dev.off() 
+jpeg("./Genrich/Annotation/dotplot-ekegg_wD15.jpg", width = 1000, height = 1200, res = 100)
+dotplot(ekegg_wD15,title="wD15", showCategory=30,font.size = 12)
+dev.off()
+dotplot(ekegg_bD15,title="bD15", showCategory=30,font.size = 12)
+dotplot(ekegg_wD15,title="wD15", showCategory=30,font.size = 12)
+cluster_summary_wD15 <- data.frame(ekegg_wD15)
+cluster_summary_bD15 <- data.frame(ekegg_bD15)
+write.csv(cluster_summary_wD15,"./Genrich/Annotation/clusterProfiler-kegg_wD15.csv")
+write.csv(cluster_summary_bD15,"./Genrich/Annotation/clusterProfiler_kegg_bD15.csv")
+
+```
+# Comparing enrichment across samples
+
+```{r Comparing enrichment across samples , echo = FALSE, error = TRUE, fig.show = "hold", fig.height = 10, fig.width = 10}
+# Create a list with genes from each sample
+genes = lapply( peakAnnoList , function(i) as.data.frame(i)$geneId)
+genes2 = genes[c(1,2)]
+# Run KEGG analysis
+compKEGG <- compareCluster(geneCluster = genes2, 
+                         fun = "enrichKEGG",
+                         organism = "human",
+                         pvalueCutoff  = 0.05, 
+                         pAdjustMethod = "BH")
+jpeg("./Genrich/Annotation/dotplot-compKEGG.jpg", width = 1000, height = 1200, res = 100)
+dotplot(compKEGG, showCategory = 20, title = "KEGG Pathway Enrichment Analysis",font.size = 10)
+dev.off()
+dotplot(compKEGG, showCategory = 20, title = "KEGG Pathway Enrichment Analysis",font.size = 10)
+cluster_summary_wD15_bD15 <- data.frame(compKEGG)
+write.csv(cluster_summary_wD15_bD15,"./Genrich/Annotation/clusterProfiler_compKEGG_wD15_bD15.csv")
+```
