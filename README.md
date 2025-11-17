@@ -67,7 +67,6 @@ Clustering SHAP values (3E-H)
   better figures somewhere else?
 
 
-
 **Figure 4 HiChIP**
 
 Calling differential loops (4A)
@@ -79,7 +78,11 @@ Calling differential loops (4A)
 
 **Figure 5 TFs in beige loops**
 
-MED1 signal
+MED1 signal (5A)
 
 * HiChIP/vs\_med1/
+
+TF footprinting from ATACseq (5E)
+
+* TF_footprinting_script.bash
 
