@@ -3,9 +3,10 @@
 Code and analyzed data files to accompany paper Hazell Pickering et al 2025 "Multimodal epigenetic and enhancer network remodeling shape the transcriptional landscape of human beige adipocytes"
 
 [![DOI](https://zenodo.org/badge/1015463755.svg)](https://doi.org/10.5281/zenodo.17625771)
+
 in press, Communications Biology 2025
 
-[![BioRxiv]](https://www.biorxiv.org/content/10.1101/2025.03.28.645896v1)
+[BioRxiv 2025](https://www.biorxiv.org/content/10.1101/2025.03.28.645896v1)
 
 
 **Figure 1 RNA-Seq**
