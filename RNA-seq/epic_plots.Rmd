@@ -1,0 +1,75 @@
+---
+title: "epic_deconvolution_plots"
+output: html_document
+date: "2025-08-06"
+---
+
+```{r message=FALSE, warning=FALSE}
+library(here); i_am("epic_plots.Rmd")
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(ggbeeswarm)
+library(ggpubr)
+```
+
+## Data indir 
+```{r setup}
+indir = here("EPIC_results")
+```
+
+```{r themes}
+theme_hp = theme_classic(base_size=15) + 
+		  theme(axis.line = element_line(linewidth = 0.25),
+		        axis.ticks = element_line(linewidth=0.25),
+		        strip.background = element_blank(), # remove boxes around facet labels
+		        )
+		#set for all ggplots
+theme_set(theme_hp)
+fig_path = paste0(here(indir,"plots"),"/")
+if (!dir.exists(fig_path)){dir.create(fig_path)}
+knitr::opts_chunk$set(dev=c('png','pdf'), fig.path = fig_path)
+```
+
+## Load EPIC results
+
+```{r}
+abund = read.delim(here(indir, paste0("EPIC_results.txt")), skip = 5)
+head(abund)
+```
+
+```{r}
+long =pivot_longer(abund, grep("AD[1-8]|otherCells",colnames(abund)), names_to = "sc_subtype", values_to = "abundance") %>%
+  mutate(condition = if_else(grepl("beige", sampleID), "beige", "white"),
+         cond.subtype = paste0(condition, ".",sc_subtype))
+long = mutate(long, condition = factor(condition, levels=c("beige","white")))
+head(long)
+```
+
+
+## Relative abundance (%)
+
+```{r}
+ggplot(filter(long,sc_subtype %in% paste0("AD",1:8)), aes(x=sc_subtype, y=abundance, fill=condition)) + 
+  geom_bar(stat="summary", fun="mean", position="dodge") +
+  geom_beeswarm(cex=1, dodge.width = 0.9, side=0) +
+  stat_compare_means(method = 't.test', label="p.signif", vjust=0.7, label.y=1,size=7, hide.ns = T, colour="grey30", angle=90) +
+  scale_fill_manual(values=c("#FF7F00","#1F78B4"), guide=guide_legend(reverse=T)) + 
+  scale_y_continuous(expand=expansion(mult=c(0,0.01)), name="Relative abundance") +
+  scale_x_discrete(name="Adipocyte Subtypes", limits = paste0("AD",8:1),
+                   labels = rev(paste0("AD",1:8,"\n",c("Calcium Thermogenesis","Creatine Thermogenesis","Lipid droplet",
+                                                       "BCAA catabolism","Metabolism","Fibrosis","Sphingolipid / Lipolysis",
+                                                       "Beige / Trafficking")))) +
+  coord_flip()
+```
+
+## Stats tables
+
+```{r}
+summary(aov(abundance~condition*sc_subtype, data=long))
+compare_means(abundance~condition, data=filter(long,sc_subtype%in%c("AD1","AD2","AD3","AD4","AD5")),
+              group.by = "sc_subtype", method = "t.test")
+```
+
+
+

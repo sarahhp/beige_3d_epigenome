@@ -1,0 +1,12 @@
+Job name:	EPIC_results
+Bulk data:	donor_D13A_CPM.txt
+Reference profiles:	User-uploaded: pseudobulk_marker_genes.txt
+Fraction is:	cell fractions
+
+sampleID	AD1	AD2	AD3	AD4	AD5	AD6	AD7	AD8	otherCells
+beige_rep1	0	0.8082	0.0687	0	0.0538	0	3e-04	2e-04	0.0688
+beige_rep2	0	0.918	0	0.0023	0.0055	0	8e-04	0	0.0732
+beige_rep3	0	0.6149	0.1041	0.0041	0.2035	0	0	0	0.0734
+white_rep1	0	0	0.816	2e-04	0	0	4e-04	1e-04	0.1833
+white_rep2	0	0.0206	0.7859	0	0.0024	9e-04	0	0	0.1901
+white_rep3	0.1025	9e-04	0.7023	3e-04	0	1e-04	0	0	0.1938
