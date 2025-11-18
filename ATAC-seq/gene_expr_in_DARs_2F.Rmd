@@ -11,7 +11,6 @@ library(ggplot2)
 library(RColorBrewer)
 library(ggpubr)
 library(ggbeeswarm)
-
 ```
 
 
@@ -32,7 +31,7 @@ caveat: this was normalised with the conversion and donor7 samples
 can do a renomalisation for this paper alone for 'completeness'
 
 ```{r}
-load("C:/Users/sarahhp/OneDrive - Universitetet i Oslo/Teams - Thermogenesis/bulk RNAseq/00_summary_files/all_fpkms_for_plotting.RData")
+load("D:/UiO/Projects/rnaseq/00_summary_files/all_fpkms_for_plotting.RData")
 subjects = data.frame(donor=c("D06G","D07G","D08A","D09A","D13A","D15LH"),
                       subject=c("S3","S4","S2","S1","S6","S5"))
 subjects = subjects[order(subjects$subject),]
@@ -48,10 +47,10 @@ d13_tc$group = factor(d13_tc$group, levels = c("day15_white","day3_white","day1_
 table(d13_tc$group)
 table(d13_tc$rep, d13_tc$group)
 ```
-## Load DAR gene lists
+# Load DAR gene lists
 
 ```{r}
-library(here); i_am("gene_expr_in_DARs.Rmd")
+library(here); i_am("gene_expr_in_DARs_2F.Rmd")
 wDar_genes = read.delim("DAR_D15w_promoter_genelist.txt")$gene.name
 head(wDar_genes); length(wDar_genes)
 bDAR_genes = read.delim("DAR_D15b_promoter_genelist.txt")$gene.name
@@ -63,7 +62,7 @@ summary(total_DARg %in% long$gene_name) # we miss 87 genes with 0 expression
 missing = total_DARg[!total_DARg %in% long$gene_name]
 missing
 ```
-## Filter and Fill 0s
+### Filter and Fill 0s
 
 ```{r}
 dar_fpkm = filter(d13_tc, gene_name %in% total_DARg) 
@@ -85,7 +84,7 @@ table(dar_fpkm$name, useNA = "ifany")
 tail(dar_fpkm)
 table(dar_fpkm$dar_type, useNA = "ifany")
 ```
-## Calculate averages
+### Calculate averages
 
 And technically we want to plot the spread as an average across replicates
 
@@ -99,26 +98,41 @@ head(rep_avg)
 write.table(summary, here("mean_expr_per_replicate.tsv"), sep="\t", quote=FALSE, row.names = F)
 ```
 Testing log2 scaled RNA expression (FPKM) . 
+
+## Two way ANOVA
 ```{r}
-summary(aov(log_mean_expr ~ dar_type + group, data=rep_avg )) 
-rna_stats = compare_means(log_mean_expr ~ group, data= rep_avg, group.by="dar_type", method = "t.test") #on the log scale
-rna_stats
+summary(aov(log_mean_expr ~ dar_type + group, data=rep_avg ))
+```
+
+## T-test for individual comparisons
+```{r}
+rna_stats = compare_means(log_mean_expr ~ group, data= rep_avg, group.by="dar_type", method = "t.test", 
+                          p.adjust.method = "none")
+comparisons = c("day0_ASC;day1_beige","day1_beige;day3_beige","day15_white;day0_ASC",
+                "day3_beige;day15_beige","day0_ASC;day15_beige","day15_white;day15_beige")
+#Adjust only on comparisons of interest
+rna_stats = mutate(rna_stats, comp = paste(group1, group2, sep=";")) %>% 
+  filter(comp %in% comparisons) %>%  mutate(p.adj = p.adjust(p, method="holm"), p.adj.format = format.pval(p.adj, 3))
+rna_stats[c(1,3:6,11)]
 write.table(rna_stats, here("t.test_mean_between_reps_result.tsv"), sep="\t", quote=FALSE, row.names = F)
 ```
 
+## Figures
+
+Boxplot shows variation in expression between genes in each category (DAR type = white or beige).  
+raw plots list unadjusted pvalues; add adj pvals in illustrator. 
 
 ```{r}
-ggplot(summary, aes(x=group, y=log2(mean_expr+1), fill=group)) +geom_boxplot(outlier.shape=NA) + 
+ggplot(summary, aes(x=group, y=log2(mean_expr+1), fill=group)) +geom_boxplot(outlier.shape=NA, linewidth=0.25) + 
   scale_fill_manual(values=time_cols) + 
   theme(axis.text.x = element_text(angle=45, hjust=1)) + 
   facet_wrap(~dar_type) + 
   geom_beeswarm(data=rep_avg, aes(y=log2(mean_expr+1)), cex = 3) +
   coord_cartesian(y=c(0,12)) +
-  stat_compare_means(comparisons = list(c("day0_ASC","day1_beige"),
+  stat_compare_means(data=rep_avg, comparisons = list(c("day0_ASC","day1_beige"),
                                         c("day1_beige","day3_beige"),
                                         c("day15_white","day0_ASC"),
                                         c("day3_beige","day15_beige"),
-                                       
                                         c("day15_beige","day0_ASC"), 
                                         c("day15_white","day15_beige")),
                      method="t.test", label="p.signif", label.y = seq(from=7, to=11, length.out=6),
@@ -127,3 +141,24 @@ ggplot(summary, aes(x=group, y=log2(mean_expr+1), fill=group)) +geom_boxplot(out
 
 ggsave(here("log2_mean_expr_with_reps.pdf"))
 ```
+
+```{r}
+ggplot(summary, aes(x=group, y=log2(mean_expr+1), fill=group)) +geom_boxplot(outlier.shape=NA, linewidth=0.25) + 
+  scale_fill_manual(values=time_cols) + 
+  theme(axis.text.x = element_text(angle=45, hjust=1)) + 
+  facet_wrap(~dar_type) + 
+  geom_beeswarm(data=rep_avg, aes(y=log2(mean_expr+1)), cex = 3) +
+  coord_cartesian(y=c(0,12)) +
+  stat_compare_means(data=rep_avg, comparisons = list(c("day0_ASC","day1_beige"),
+                                        c("day1_beige","day3_beige"),
+                                        c("day15_white","day0_ASC"),
+                                        c("day3_beige","day15_beige"),
+                                        c("day15_beige","day0_ASC"), 
+                                        c("day15_white","day15_beige")),
+                     method="t.test", label="p.format", label.y = seq(from=7, to=11, length.out=6),
+                     tip.length =0.01)
+ggsave(here("log2_mean_expr_with_reps_&exact_pvals.pdf"))
+```
+
+
+

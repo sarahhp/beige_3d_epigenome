@@ -1,43 +1,13 @@
-dar_type	.y.	group1	group2	p	p.adj	p.format	p.signif	method
-white	log_mean_expr	day15_white	day3_white	0.667457676142069	1	0.66746	ns	T-test
-white	log_mean_expr	day15_white	day1_white	0.0187640141068411	0.41	0.01876	*	T-test
-white	log_mean_expr	day15_white	day0_ASC	0.0300830369091548	0.51	0.03008	*	T-test
-white	log_mean_expr	day15_white	day1_beige	0.016462677129331	0.38	0.01646	*	T-test
-white	log_mean_expr	day15_white	day3_beige	0.189214566935279	1	0.18921	ns	T-test
-white	log_mean_expr	day15_white	day15_beige	0.461597168078453	1	0.46160	ns	T-test
-white	log_mean_expr	day3_white	day1_white	0.0236721033471479	0.46	0.02367	*	T-test
-white	log_mean_expr	day3_white	day0_ASC	0.0255534295571257	0.46	0.02555	*	T-test
-white	log_mean_expr	day3_white	day1_beige	0.00364549928551229	0.12	0.00365	**	T-test
-white	log_mean_expr	day3_white	day3_beige	0.247055954928048	1	0.24706	ns	T-test
-white	log_mean_expr	day3_white	day15_beige	0.146720172140488	1	0.14672	ns	T-test
-white	log_mean_expr	day1_white	day0_ASC	0.401058341649733	1	0.40106	ns	T-test
-white	log_mean_expr	day1_white	day1_beige	0.737219420050408	1	0.73722	ns	T-test
-white	log_mean_expr	day1_white	day3_beige	0.303040046403446	1	0.30304	ns	T-test
-white	log_mean_expr	day1_white	day15_beige	0.0126808054008526	0.35	0.01268	*	T-test
-white	log_mean_expr	day0_ASC	day1_beige	0.165114459114245	1	0.16511	ns	T-test
-white	log_mean_expr	day0_ASC	day3_beige	0.593350599655324	1	0.59335	ns	T-test
-white	log_mean_expr	day0_ASC	day15_beige	0.00928942832819052	0.27	0.00929	**	T-test
-white	log_mean_expr	day1_beige	day3_beige	0.228171181629567	1	0.22817	ns	T-test
-white	log_mean_expr	day1_beige	day15_beige	0.000881620940293815	0.032	0.00088	***	T-test
-white	log_mean_expr	day3_beige	day15_beige	0.119116795360407	1	0.11912	ns	T-test
-beige	log_mean_expr	day15_white	day3_white	0.0146520285833287	0.37	0.01465	*	T-test
-beige	log_mean_expr	day15_white	day1_white	0.000686210439432593	0.027	0.00069	***	T-test
-beige	log_mean_expr	day15_white	day0_ASC	0.00240018984239807	0.079	0.00240	**	T-test
-beige	log_mean_expr	day15_white	day1_beige	0.00111140891053754	0.039	0.00111	**	T-test
-beige	log_mean_expr	day15_white	day3_beige	0.769693126006243	1	0.76969	ns	T-test
-beige	log_mean_expr	day15_white	day15_beige	0.00642227285256736	0.2	0.00642	**	T-test
-beige	log_mean_expr	day3_white	day1_white	0.000734223451304282	0.029	0.00073	***	T-test
-beige	log_mean_expr	day3_white	day0_ASC	0.00220460682729786	0.075	0.00220	**	T-test
-beige	log_mean_expr	day3_white	day1_beige	0.00679340849138953	0.2	0.00679	**	T-test
-beige	log_mean_expr	day3_white	day3_beige	0.14243535514895	1	0.14244	ns	T-test
-beige	log_mean_expr	day3_white	day15_beige	0.000877251182246371	0.032	0.00088	***	T-test
-beige	log_mean_expr	day1_white	day0_ASC	0.0200703920473845	0.42	0.02007	*	T-test
-beige	log_mean_expr	day1_white	day1_beige	0.0388967907509011	0.58	0.03890	*	T-test
-beige	log_mean_expr	day1_white	day3_beige	0.0154147905612628	0.37	0.01541	*	T-test
-beige	log_mean_expr	day1_white	day15_beige	0.000106239639739832	0.0044	0.00011	***	T-test
-beige	log_mean_expr	day0_ASC	day1_beige	0.0125016661637597	0.35	0.01250	*	T-test
-beige	log_mean_expr	day0_ASC	day3_beige	0.0131342524282055	0.35	0.01313	*	T-test
-beige	log_mean_expr	day0_ASC	day15_beige	3.73165228047457e-07	1.6e-05	3.7e-07	****	T-test
-beige	log_mean_expr	day1_beige	day3_beige	0.0231903288603912	0.46	0.02319	*	T-test
-beige	log_mean_expr	day1_beige	day15_beige	0.000772319730726823	0.029	0.00077	***	T-test
-beige	log_mean_expr	day3_beige	day15_beige	0.0307878221263536	0.51	0.03079	*	T-test
+dar_type	.y.	group1	group2	p	p.adj	p.format	p.signif	method	comp	p.adj.format
+white	log_mean_expr	day15_white	day0_ASC	0.0300830369091545	0.180498221454927	0.03008	*	T-test	day15_white;day0_ASC	0.1805
+white	log_mean_expr	day15_white	day15_beige	0.461597168078453	0.495343377342738	0.46160	ns	T-test	day15_white;day15_beige	0.4953
+white	log_mean_expr	day0_ASC	day1_beige	0.165114459114246	0.495343377342738	0.16511	ns	T-test	day0_ASC;day1_beige	0.4953
+white	log_mean_expr	day0_ASC	day15_beige	0.00928942832819033	0.083604854953713	0.00929	**	T-test	day0_ASC;day15_beige	0.0836
+white	log_mean_expr	day1_beige	day3_beige	0.228171181629568	0.495343377342738	0.22817	ns	T-test	day1_beige;day3_beige	0.4953
+white	log_mean_expr	day3_beige	day15_beige	0.119116795360407	0.476467181441629	0.11912	ns	T-test	day3_beige;day15_beige	0.4765
+beige	log_mean_expr	day15_white	day0_ASC	0.00240018984239805	0.0264020882663786	0.00240	**	T-test	day15_white;day0_ASC	0.0264
+beige	log_mean_expr	day15_white	day15_beige	0.00642227285256736	0.0642227285256736	0.00642	**	T-test	day15_white;day15_beige	0.0642
+beige	log_mean_expr	day0_ASC	day1_beige	0.0125016661637598	0.100013329310078	0.01250	*	T-test	day0_ASC;day1_beige	0.1000
+beige	log_mean_expr	day0_ASC	day15_beige	3.73165228047439e-07	4.47798273656927e-06	3.7e-07	****	T-test	day0_ASC;day15_beige	4.48e-06
+beige	log_mean_expr	day1_beige	day3_beige	0.0231903288603916	0.162332302022741	0.02319	*	T-test	day1_beige;day3_beige	0.1623
+beige	log_mean_expr	day3_beige	day15_beige	0.0307878221263539	0.180498221454927	0.03079	*	T-test	day3_beige;day15_beige	0.1805
