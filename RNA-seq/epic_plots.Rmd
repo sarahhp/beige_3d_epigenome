@@ -67,8 +67,10 @@ ggplot(filter(long,sc_subtype %in% paste0("AD",1:8)), aes(x=sc_subtype, y=abunda
 
 ```{r}
 summary(aov(abundance~condition*sc_subtype, data=long))
-compare_means(abundance~condition, data=filter(long,sc_subtype%in%c("AD1","AD2","AD3","AD4","AD5")),
+stats = compare_means(abundance~condition, data=filter(long,sc_subtype%in%c("AD1","AD2","AD3","AD4","AD5")),
               group.by = "sc_subtype", method = "t.test")
+stats
+write.table(stats, here("EPIC_results/epic_beige_vs_white_ttest_pvalues.tsv"), sep="\t", quote=F, row.names = F)
 ```
 
 

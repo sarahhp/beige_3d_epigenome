@@ -1,0 +1,6 @@
+sc_subtype	.y.	group1	group2	p	p.adj	p.format	p.signif	method
+AD1	abundance	beige	white	0.422649730810374	0.72	0.42265	ns	T-test
+AD2	abundance	beige	white	0.0125018617083425	0.05	0.01250	*	T-test
+AD3	abundance	beige	white	0.000108000655683887	0.00054	0.00011	***	T-test
+AD4	abundance	beige	white	0.238797108460544	0.72	0.23880	ns	T-test
+AD5	abundance	beige	white	0.282596010593275	0.72	0.28260	ns	T-test
