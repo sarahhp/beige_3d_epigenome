@@ -4,7 +4,7 @@ Code and analyzed data files to accompany paper Hazell Pickering et al 2025 "Mul
 
 [![DOI](https://zenodo.org/badge/1015463755.svg)](https://doi.org/10.5281/zenodo.17625771)
 
-in press, Communications Biology 2025
+Communications Biology 2026
 
 [BioRxiv 2025](https://www.biorxiv.org/content/10.1101/2025.03.28.645896v1)
 
@@ -88,4 +88,5 @@ MED1 signal (5A)
 TF footprinting from ATACseq (5E)
 
 * TF_footprinting_script.bash
+
 
